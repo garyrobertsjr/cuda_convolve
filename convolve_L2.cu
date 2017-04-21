@@ -150,8 +150,6 @@ int main(int argc, char **argv){
 		printf("Derivative Kernel:\n");
 		print_matrix(gaussian_deriv,1,k_width);
 
-		gettimeofday(&start, NULL);
-
 		// CPU host mallocs for GPU buffers
 		cudaMalloc((void**)&d_org_img, sizeof(float)*width*height);
 		cudaMalloc((void**)&d_temp_horizontal, sizeof(float)*width*height);
@@ -161,6 +159,7 @@ int main(int argc, char **argv){
 		cudaMalloc((void**)&d_gaussian_kernel, sizeof(float)*k_width);
 		cudaMalloc((void**)&d_gaussian_deriv, sizeof(float)*k_width);
 
+		gettimeofday(&start, NULL);
 		// Offload all of the data to GPU device for convolution
 		cudaMemcpy(d_org_img, org_img, sizeof(float)*width*height, cudaMemcpyHostToDevice);
 		cudaMemcpy(d_gaussian_kernel, gaussian_kernel, sizeof(float)*k_width, cudaMemcpyHostToDevice);
@@ -189,16 +188,11 @@ int main(int argc, char **argv){
 		temp_vertical = (float*)malloc(sizeof(float)*height*width);	
 
 		cudaMemcpy(horizontal_gradient, d_horizontal_gradient, sizeof(float)*width*height, cudaMemcpyDeviceToHost);
-		cudaMemcpy(temp_gradient, d_temp_horizontal, sizeof(float)*width*height, cudaMemcpyDeviceToHost);
 		cudaMemcpy(vertical_gradient, d_vertical_gradient, sizeof(float)*width*height, cudaMemcpyDeviceToHost);
-		cudaMemcpy(temp_vertical, d_temp_vertical, sizeof(float)*width*height, cudaMemcpyDeviceToHost);
 		
 		gettimeofday(&end, NULL);
 
 		write_image_template("h_gradient_L2.pgm", horizontal_gradient, width, height);
-		write_image_template("temp_hor_L2.pgm", temp_gradient, width, height);
-		write_image_template("temp_ver_L2.pgm", temp_vertical, width, height);
-
 		write_image_template("v_gradient_L2.pgm", vertical_gradient, width, height);
 
 		printf("%ld\n", (end.tv_sec *1000000 + end.tv_usec)-(start.tv_sec * 1000000 + start.tv_usec));
